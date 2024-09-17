@@ -9,24 +9,6 @@ from itemadapter import ItemAdapter
 import json
 from collections import defaultdict
 
-# padrao = {"física 1 2023": {"titulo": "link"}}
-
-
-""" 
-
-class AridesaAulas(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-
-    title = scrapy.Field()
-    link = scrapy.Field()
-    course = scrapy.Field()
-
-    pass
-
-
-"""
-
 
 class AridesaScrapyPipeline:
     def open_spider(self, spider):

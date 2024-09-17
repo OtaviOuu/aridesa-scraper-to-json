@@ -4,10 +4,10 @@ from scrapy.http import Request, Response, JsonRequest, FormRequest
 import re
 from ..items import AridesaAulas
 
-
+# TODO: Receber senha por flags
 # 23423135:Tc4hz8qe2d@@
 
-
+# TODO: Carregar cookies direto dos navegadores do sistema
 cookies = [
     {
         "name": "_legacy_normandy_session",
@@ -119,6 +119,8 @@ class aridesaSpider(Spider):
     name = "aridesa"
     base_url = "https://aridesa.instructure.com"
     base_api = f"{base_url}/api/v1/dashboard/dashboard_cards"
+
+    api_courses_2023 = "https://aridesa.instructure.com/api/v1/courses/"
 
     def start_requests(self) -> Iterable[Request]:
 
