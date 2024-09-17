@@ -6,8 +6,44 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
+import json
+from collections import defaultdict
+
+# padrao = {"física 1 2023": {"titulo": "link"}}
+
+
+""" 
+
+class AridesaAulas(scrapy.Item):
+    # define the fields for your item here like:
+    # name = scrapy.Field()
+
+    title = scrapy.Field()
+    link = scrapy.Field()
+    course = scrapy.Field()
+
+    pass
+
+
+"""
 
 
 class AridesaScrapyPipeline:
+    def open_spider(self, spider):
+        self.courses = defaultdict(dict)
+
     def process_item(self, item, spider):
+        # Adapta o item para JSON
+        course_title = item.get("course")
+        title = item.get("title")
+        link = item.get("link")
+
+        if course_title and title and link:
+            self.courses[course_title][title] = link
+
         return item
+
+    # TODO: Retornar os nomes das aulas em ordem alfabetica
+    def close_spider(self, spider):
+        with open("items.json", "w", encoding="utf-8") as file:
+            json.dump(self.courses, file, indent=4, ensure_ascii=False, sort_keys=True)

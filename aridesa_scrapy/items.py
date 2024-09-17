@@ -6,7 +6,12 @@
 import scrapy
 
 
-class AridesaScrapyItem(scrapy.Item):
+class AridesaAulas(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
+
+    title = scrapy.Field()
+    link = scrapy.Field()
+    course = scrapy.Field()
+
     pass
