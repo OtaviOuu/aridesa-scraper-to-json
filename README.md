@@ -1,0 +1,1 @@
+# aridesa-downloader-scrapy-json
