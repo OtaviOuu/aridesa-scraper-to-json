@@ -173,4 +173,5 @@ class aridesaSpider(Spider):
         if match:
             yt_video_link = match.group(0)
             self.item["link"] = yt_video_link
+
         yield self.item
