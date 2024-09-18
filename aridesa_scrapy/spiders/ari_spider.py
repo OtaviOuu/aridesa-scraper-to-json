@@ -2,7 +2,10 @@ from typing import Any, Iterable
 from scrapy import Spider
 from scrapy.http import Request, Response, JsonRequest, FormRequest
 import re
+
+import scrapy.logformatter
 from ..items import AridesaAulas
+from collections import defaultdict
 
 # TODO: Receber senha por flags
 # 23423135:Tc4hz8qe2d@@
@@ -116,6 +119,8 @@ final_data = {}
 
 
 class aridesaSpider(Spider):
+    item = AridesaAulas()
+
     name = "aridesa"
     base_url = "https://aridesa.instructure.com"
     base_api = f"{base_url}/api/v1/dashboard/dashboard_cards"
@@ -132,47 +137,35 @@ class aridesaSpider(Spider):
 
     def courses_parse(self, response: Response) -> Any:
         for course_card in response.json():
-            course_context = {
-                "course_title": course_card["originalName"],
-                "course_href": course_card["pagesUrl"],
-            }
 
             yield response.follow(
                 course_card["pagesUrl"],
                 callback=self.classes_parse,
-                cb_kwargs={"course_context": course_context},
             )
 
-    def classes_parse(self, response: Response, course_context):
+    def classes_parse(self, response: Response):
 
         classes_hrefs = response.css(
             ".module-item-title .ig-title.title.item_link::attr(href)"
         ).getall()
-        classes_titles = response.css(
-            ".module-item-title .ig-title.title.item_link::text"
-        ).getall()
 
-        for href, title in zip(classes_hrefs, classes_titles):
+        for href in classes_hrefs:
 
             yield response.follow(
                 url=f"{self.base_url}{href}",
                 callback=self.video_parse,
-                cb_kwargs={"course_context": course_context},
             )
 
-    def video_parse(self, response: Response, course_context: dict):
-        course_context_buffer = course_context.copy()
+    def video_parse(self, response: Response):
 
-        item = AridesaAulas()
-
-        item["title"] = response.css("title::text").get()
-        item["course"] = course_context["course_title"]
+        self.item["title"] = response.css("title::text").get()
+        self.item["course"] = response.css("a[href*='/courses/'] span::text").get()
 
         embed_video_pattern = r"https://www\.youtube\.com/embed/([a-zA-Z0-9_-]+)"
         match = re.search(embed_video_pattern, response.text)
 
         if match:
-            course_context_buffer["yt_video_link"] = match.group(0)
-            item["link"] = course_context_buffer["yt_video_link"]
+            yt_video_link = match.group(0)
+            self.item["link"] = yt_video_link
 
-            yield item
+            yield self.item

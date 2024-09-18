@@ -5,14 +5,14 @@
 
 
 # useful for handling different item types with a single interface
-from itemadapter import ItemAdapter
 import json
 from collections import defaultdict
 
 
 class AridesaScrapyPipeline:
-    def open_spider(self, spider):
-        self.courses = defaultdict(dict)
+    courses = defaultdict(dict)
+
+    # def open_spider(self, spider):
 
     def process_item(self, item, spider):
         # Adapta o item para JSON
@@ -25,7 +25,6 @@ class AridesaScrapyPipeline:
 
         return item
 
-    # TODO: Retornar os nomes das aulas em ordem alfabetica
     def close_spider(self, spider):
         with open("items.json", "w", encoding="utf-8") as file:
             json.dump(self.courses, file, indent=4, ensure_ascii=False, sort_keys=True)
