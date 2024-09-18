@@ -1,3 +1,6 @@
 venv/
 data.json
 items.json
+build
+project.egg-info
+scrapinghub.yml

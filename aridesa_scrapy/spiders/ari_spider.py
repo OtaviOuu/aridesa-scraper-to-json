@@ -1,11 +1,9 @@
-from typing import Any, Iterable
+from typing import Iterable
 from scrapy import Spider
-from scrapy.http import Request, Response, JsonRequest, FormRequest
+from scrapy.http import Request, Response
 import re
 
-import scrapy.logformatter
 from ..items import AridesaAulas
-from collections import defaultdict
 
 # TODO: Receber senha por flags
 # 23423135:Tc4hz8qe2d@@
@@ -14,7 +12,7 @@ from collections import defaultdict
 cookies = [
     {
         "name": "_legacy_normandy_session",
-        "value": "QFjO6vnxIQbcrd9AAwp6RA+N2kVgIcFAztFWbTqBP3PGOuDM3zdsVGBY-f_s9SztNjGbnf8rOIhY--XP8GVr4MwQ8vZg-09XWl77uK8YDjELh-DkampLgOG3wtzBsdPx6g-oEqeBCSyyPZja9LSwGktVIXqndYL0gxJHgTljKZxcv0wvPKy176FIr1HHAufKWz8N_tuGEiS2WVmIjyFlZe098hWNCzvH7cHPnNfRdYeuuyRTDscr2_5KioIKX8MMguVSCjdKk9UiCRabne50wB2OVLIdW28UDI_v5QLMPwQt1QOVnJ5hgX7gIezMXXHByP9fgJHVIW4IfGIl_vLqf-zFW57k3xWqykkhcz2Vdkf-mWN8lS1aWH7XJ11vKyCT6YvogFwkwSYgFliOR3FKdfTB3mUX43HWObF3qe3ZE4i_A.9U2NxHdho3CwA1D1HNzvvHGi0I4.ZujdCA",
+        "value": "LlhlZxfm3QYt0YU_nizytw+xZxlTC4g3HxhiW3vbcbuPzTS38gzMBMEt53NeEaZw3TcOhBfIum21cWE5roRCiLFlI0Htf_rlQwInWXufSomF_HXkVY6PJDA7il02I9-zWmP6W3FRPbT8FyyOKjOF4KLrUgSJdp9S1fUsFxq9XNW8Oh4jRMvBXPE1uiuTSwFjNYZqE1rGh8vYX84eyr4atMzntRMIMQQk4Aviep5nzPnyvAuNDVR6z7eb5oB3UjiSw0JPl-zA2HuMgoTLYsbEUrZpRmrn_PsUlh4EWSvZvLyw6uUNbJVxSpwwtoxBJhuSXZPBya6njSq_2KphjVl8Wi0ZeKKlhKT1nuQgMX9caJAwHD36d7cZZayqpDT3TmEoYO4WjUYiG-IGo16sdxnk5nR.iPu21to-oGMixRUE3747gZYaO-w.Zuo8Uw",
         "domain": "aridesa.instructure.com",
         "hostOnly": True,
         "path": "/",
@@ -28,7 +26,7 @@ cookies = [
     },
     {
         "name": "log_session_id",
-        "value": "82ca7f4344e42735bcf5e5b62f706f0f",
+        "value": "e14c6555488521ebe79cdb5d5164d047",
         "domain": "aridesa.instructure.com",
         "hostOnly": True,
         "path": "/",
@@ -56,8 +54,23 @@ cookies = [
         "storeId": None,
     },
     {
+        "name": "pseudonym_credentials",
+        "value": "104579%3A%3A799cb5d985e68cc95beee240239ade5b205f2c148af58660222d46fe4377820bb48a62169772a556d4927109d3f37ae5ce1012757bf738aa50fb3c561f4242ed%3A%3A47faeaf8b03511478e14a1d44a8d6b907141c977665c628bb838276dfc6ecdb3",
+        "domain": "aridesa.instructure.com",
+        "hostOnly": True,
+        "path": "/",
+        "secure": True,
+        "httpOnly": True,
+        "sameSite": "no_restriction",
+        "session": False,
+        "firstPartyDomain": "",
+        "partitionKey": None,
+        "expirationDate": 1727829545,
+        "storeId": None,
+    },
+    {
         "name": "_csrf_token",
-        "value": "AoSLAnzqHT2axu3cLWFH113GhkjsqTs%2BlcHCz7cMzt5F9eBnU5hqTtfyqKhHLBG0EO3ze9zLdE3H6rOs9nut7A%3D%3D",
+        "value": "uHNqjRTrK3VHqmhDn98kCZmmcyuOLiixQf5joS1chV3zSwjXe6pGDCLgABDbnnBE69IaGM9BbIkbuAzCYhTxJw%3D%3D",
         "domain": "aridesa.instructure.com",
         "hostOnly": True,
         "path": "/",
@@ -101,7 +114,7 @@ cookies = [
     },
     {
         "name": "canvas_session",
-        "value": "QFjO6vnxIQbcrd9AAwp6RA+N2kVgIcFAztFWbTqBP3PGOuDM3zdsVGBY-f_s9SztNjGbnf8rOIhY--XP8GVr4MwQ8vZg-09XWl77uK8YDjELh-DkampLgOG3wtzBsdPx6g-oEqeBCSyyPZja9LSwGktVIXqndYL0gxJHgTljKZxcv0wvPKy176FIr1HHAufKWz8N_tuGEiS2WVmIjyFlZe098hWNCzvH7cHPnNfRdYeuuyRTDscr2_5KioIKX8MMguVSCjdKk9UiCRabne50wB2OVLIdW28UDI_v5QLMPwQt1QOVnJ5hgX7gIezMXXHByP9fgJHVIW4IfGIl_vLqf-zFW57k3xWqykkhcz2Vdkf-mWN8lS1aWH7XJ11vKyCT6YvogFwkwSYgFliOR3FKdfTB3mUX43HWObF3qe3ZE4i_A.9U2NxHdho3CwA1D1HNzvvHGi0I4.ZujdCA",
+        "value": "LlhlZxfm3QYt0YU_nizytw+xZxlTC4g3HxhiW3vbcbuPzTS38gzMBMEt53NeEaZw3TcOhBfIum21cWE5roRCiLFlI0Htf_rlQwInWXufSomF_HXkVY6PJDA7il02I9-zWmP6W3FRPbT8FyyOKjOF4KLrUgSJdp9S1fUsFxq9XNW8Oh4jRMvBXPE1uiuTSwFjNYZqE1rGh8vYX84eyr4atMzntRMIMQQk4Aviep5nzPnyvAuNDVR6z7eb5oB3UjiSw0JPl-zA2HuMgoTLYsbEUrZpRmrn_PsUlh4EWSvZvLyw6uUNbJVxSpwwtoxBJhuSXZPBya6njSq_2KphjVl8Wi0ZeKKlhKT1nuQgMX9caJAwHD36d7cZZayqpDT3TmEoYO4WjUYiG-IGo16sdxnk5nR.iPu21to-oGMixRUE3747gZYaO-w.Zuo8Uw",
         "domain": "aridesa.instructure.com",
         "hostOnly": True,
         "path": "/",
@@ -115,57 +128,49 @@ cookies = [
     },
 ]
 
-final_data = {}
-
 
 class aridesaSpider(Spider):
     item = AridesaAulas()
 
     name = "aridesa"
     base_url = "https://aridesa.instructure.com"
-    base_api = f"{base_url}/api/v1/dashboard/dashboard_cards"
-
-    api_courses_2023 = "https://aridesa.instructure.com/api/v1/courses/"
 
     def start_requests(self) -> Iterable[Request]:
-
         yield Request(
-            url=self.base_api,
+            url="https://aridesa.instructure.com/courses",
             cookies=cookies,
-            callback=self.courses_parse,
+            callback=self.courses_2024_parse,
         )
 
-    def courses_parse(self, response: Response) -> Any:
-        for course_card in response.json():
+    def courses_2024_parse(self, response: Response):
 
-            yield response.follow(
-                course_card["pagesUrl"],
-                callback=self.classes_parse,
-            )
+        courses_hrefs = [
+            f"{self.base_url}{href}"
+            for href in response.css("td a::attr(href)").getall()
+        ]
 
-    def classes_parse(self, response: Response):
+        print(courses_hrefs)
+        yield from response.follow_all(
+            urls=courses_hrefs, callback=self.subjects_2024, cookies=cookies
+        )
 
+    def subjects_2024(self, response: Response):
         classes_hrefs = response.css(
             ".module-item-title .ig-title.title.item_link::attr(href)"
         ).getall()
 
-        for href in classes_hrefs:
+        yield from response.follow_all(
+            urls=classes_hrefs, callback=self.videos_2024, cookies=cookies
+        )
 
-            yield response.follow(
-                url=f"{self.base_url}{href}",
-                callback=self.video_parse,
-            )
-
-    def video_parse(self, response: Response):
+    def videos_2024(self, response: Response):
+        embed_video_pattern = r"https://www\.youtube\.com/embed/([a-zA-Z0-9_-]+)"
+        match = re.search(embed_video_pattern, response.text)
 
         self.item["title"] = response.css("title::text").get()
         self.item["course"] = response.css("a[href*='/courses/'] span::text").get()
 
-        embed_video_pattern = r"https://www\.youtube\.com/embed/([a-zA-Z0-9_-]+)"
-        match = re.search(embed_video_pattern, response.text)
-
         if match:
             yt_video_link = match.group(0)
             self.item["link"] = yt_video_link
-
-            yield self.item
+        yield self.item
