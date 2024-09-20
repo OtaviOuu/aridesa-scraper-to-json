@@ -1,10 +1,7 @@
-import scrapy
+from scrapy import Item, Field
 
 
-class AridesaAulas(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-
-    title = scrapy.Field()
-    link = scrapy.Field()
-    course = scrapy.Field()
+class AridesaAulas(Item):
+    title = Field()
+    link = Field()
+    course = Field()
